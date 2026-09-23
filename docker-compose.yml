@@ -23,7 +23,7 @@ services:
             # Shared Jenkins home directory.
             - jenkins-data:/var/jenkins_home
 
-        ports:
+        #ports:
             # Exposes the Docker TLS API only on the host localhost.
             #- "127.0.0.1:2376:2376"
 
