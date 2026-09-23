@@ -1,0 +1,87 @@
+# Docker Compose file for Jenkins with Docker-in-Docker (DinD) setup
+# Reference: https://github.com/vdespa/install-jenkins-docker
+services:
+
+    # Docker-in-Docker service.
+    # This runs a Docker daemon that Jenkins uses to build and run Docker containers.
+    docker:
+        image: docker:dind
+        name: docker-dind
+
+        # Required for Docker-in-Docker to run a Docker daemon.
+        privileged: true
+
+        environment:
+            # Enables TLS certificates for secure communication
+            # between Jenkins and the Docker daemon.
+            - DOCKER_TLS_CERTDIR=/certs
+
+        volumes:
+            # Stores Docker TLS certificates shared with the Jenkins container.
+            - jenkins-docker-certs:/certs/client
+
+            # Shared Jenkins home directory.
+            - jenkins-data:/var/jenkins_home
+
+        ports:
+            # Exposes the Docker TLS API only on the host localhost.
+            #- "127.0.0.1:2376:2376"
+
+        networks:
+            # Connects the Docker daemon to the Jenkins network.
+            - jenkins
+
+        # Uses overlay2 as the Docker storage driver.
+        command: --storage-driver overlay2
+
+
+    # Jenkins CI/CD service.
+    # Jenkins uses the Docker daemon above to build and run containers.
+    jenkins:
+        image: my-jenkins
+        name: jenkins
+
+        build:
+            # Builds the custom Jenkins image from the ./jenkins directory.
+            context: ./jenkins
+
+        restart: on-failure
+
+        environment:
+            # Docker daemon address inside the Jenkins Docker network.
+            - DOCKER_HOST=tcp://docker:2376
+
+            # Location of the Docker client TLS certificates.
+            - DOCKER_CERT_PATH=/certs/client
+
+            # Enables TLS verification when connecting to Docker.
+            - DOCKER_TLS_VERIFY=1
+
+        volumes:
+            # Persists Jenkins configuration, jobs and plugins.
+            - jenkins-data:/var/jenkins_home
+
+            # Provides Docker TLS certificates to Jenkins.
+            # Read-only prevents Jenkins from modifying the certificates.
+            - jenkins-docker-certs:/certs/client:ro
+
+        ports:
+            # Exposes Jenkins Web UI only on localhost.
+            - "127.0.0.1:8080:8080"
+
+        networks:
+            # Allows Jenkins to communicate with the Docker service.
+            - jenkins
+
+# Define network between Jenkins and Docker.
+networks:
+    jenkins:
+        driver: bridge
+
+# Define Docker volumes.
+volumes:
+    # Stores TLS certificates generated for DinD.
+    jenkins-docker-certs:
+
+    # Stores Jenkins persistent data.
+    jenkins-data:
