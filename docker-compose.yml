@@ -6,7 +6,7 @@ services:
     # This runs a Docker daemon that Jenkins uses to build and run Docker containers.
     docker:
         image: docker:dind
-        name: docker-dind
+        container_name: docker-dind
 
         # Required for Docker-in-Docker to run a Docker daemon.
         privileged: true
@@ -39,7 +39,7 @@ services:
     # Jenkins uses the Docker daemon above to build and run containers.
     jenkins:
         image: my-jenkins
-        name: jenkins
+        container_name: jenkins
 
         build:
             # Builds the custom Jenkins image from the ./jenkins directory.
