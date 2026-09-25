@@ -2,7 +2,7 @@
 Set up a containerised Jenkins environment using Docker Compose and Docker-in-Docker.
 
 # Installation
-## Pre-require
+## Prerequisites
 Install docker on your local machine
 
 ## Start docker compose
